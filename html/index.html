@@ -2,9 +2,10 @@
 <html>
     <head>
         <style>
-            #wrapper { position: relative; }
-            #map_canvas (height:100%; )
-            #map_overlay { position: absolute; top: 10px; left: 10px; z-index: 99; }
+            body {margin:0;}
+            #wrapper { position: relative; height:100%; width:100%}
+            #map_canvas {height:100px; }
+            #map_overlay { position: absolute; bottom: 30px; left: 30px; z-index: 99; background-color:white; padding:10px;}
         </style>
         <script type="text/javascript"
             src="https://maps.googleapis.com/maps/api/js?key=">
@@ -16,28 +17,28 @@
                     zoom: 12
                 };
                 
-                var map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+                var map = new google.maps.Map(document.getElementById('map_canvas'), mapOptions);
                 map.data.loadGeoJson('http://107.170.110.165/Components/data/map.geojson');
                 map.data.setStyle({
                         fillColor: 'green',
                         strokeWeight: 3
                 });
                 map.data.addListener('mouseover', function(event) {
-                        document.getElementById('map-overlay').textContent =
+                        document.getElementById('map_overlay').textContent =
                         event.feature.getProperty('AREA_MUNI');
                 });
 
             }
             google.maps.event.addDomListener(window, 'load', initialize);
-            $(function () {
-              $("#map_canvas").css("height", $(window).height());
-              });
+            document.addEventListener("DOMContentLoaded", function(event) {
+                                      document.getElementById('map_canvas').style.height = Math.max(document.documentElement.clientHeight, window.innerHeight || 0) + "px";
+            });
             </script>
     </head>
     <body>
         <div id="wrapper">
-            <div id="map-canvas"></div>
-            <div id="map-overlay">?</div>
+            <div id="map_canvas"></div>
+            <div id="map_overlay">?</div>
         </div>
     </body>
 </html>
