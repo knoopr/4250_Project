@@ -1,10 +1,9 @@
 <?php
     
     
-    include '_/components/php/db.php';
+    include 'Components/php/db.php';
     
     
-    $fileOutput = "test";
     $Buying = Download_MLS();
     //Couldn'r return 0 as an int because no matter what I did it would recognize the string as a 0
     if ($Buying != "0"){
@@ -158,12 +157,12 @@
             if ($json != null){
                 foreach($json as $key=>$value){
                     if($key != "type"){
-                        $price = $value[0]
-                        $rentalType = "Bachelor ".$housingType
+                        $price = $value[0];
+                        $rentalType = "Bachelor ".$housingType;
                         $insert->execute();
                         
-                        $price = $value[1]
-                        $rentalType = "One-Bedroom ".$housingType
+                        $price = $value[1];
+                        $rentalType = "One-Bedroom ".$housingType;
                         $insert->execute();
                         
                         $price = $value[2]
