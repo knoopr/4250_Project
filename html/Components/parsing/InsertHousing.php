@@ -1,17 +1,25 @@
 <?php
+    require '/var/www/html/Components/php/db.php';
     
     
-    include 'Components/php/db.php';
-    
-    
-    $Buying = Download_MLS();
-    //Couldn'r return 0 as an int because no matter what I did it would recognize the string as a 0
-    if ($Buying != "0"){
-        Insert_MLS($Buying);
+    if (sizeof($argv) < 2){
+        $Buying = Download_MLS();
+        echo "TEST";
+        exit();
+        //Couldn'r return 0 as an int because no matter what I did it would recognize the string as a 0
+        if ($Buying != "0"){
+            echo "test";
+            Insert_MLS("../data/".$Buying, $pdo);
+        }
+        /*$Renting = Download_Rental();
+        if ($Renting != "0"){
+            Insert_Rental($Renting);
+        }*/
     }
-    $Renting = Download_Rental();
-    if ($Renting != "0"){
-        Insert_Rental($Renting);
+    elseif (sizeof($argv) == 3){
+        if ($argv[1] = "-b"){
+            Insert_MLS($argv[2], $pdo);
+        }
     }
     
     
@@ -25,15 +33,17 @@
         $year = "20".substr($fileOutput, 2, 2);
         fclose($nextFile);
         
-        
+        //$query = "http://107.170.110.165/Components/data/districtMaps/C01.json";
         $query = "http://www.torontorealestateboard.com/market_news/market_watch/$year/$fileOutput";
         $results = @file_get_contents($query);
         if ($results === false){
+            echo $results;
+            exit();
             return "0";
         }
         
         //Writing to the pdf file
-        $resultFile = fopen($fileOutput,"w");
+        $resultFile = fopen("../data/".$fileOutput ,"w");
         fwrite($resultFile, $results);
         fclose($resultFile);
         
@@ -69,7 +79,7 @@
         }
         
         //Writing to the pdf file
-        $resultFile = fopen($fileOutput,"w");
+        $resultFile = fopen("../data/".$fileOutput,"w");
         fwrite($resultFile, $results);
         fclose($resultFile);
         
@@ -88,30 +98,22 @@
     }
     
     
-    function Insert_MLS($fileName){
+    function Insert_MLS($fileName, $pdo){
         $output = shell_exec("./ParseMLS.py $fileName");
         $split = explode("\n", $output);
-        $today = date(DATE_RFC2822, 'America/Toronto' );
         
         
         // Setting up pdo statements
-        $sql = "INSERT INTO db10263_should.AVERAGE_COST
-        SELECT NULL, :date, sector.id AS sector, housing_type.id AS type, :average
-        FROM sector, housing_type
-        WHERE sector.name =':sector'
-        AND housing_type.name =':type'";
-        
+        $sql = "INSERT INTO HOUSING.COST_ENTRIES
+        SELECT NULL, NULL, SECTOR.ID AS SECTOR_ID, HOUSING_TYPE.id AS HOUSING_ID, :average, :median
+        FROM SECTOR, HOUSING_TYPE
+        WHERE SECTOR.NAME =:sector
+        AND HOUSING_TYPE.NAME =:type";
         
         //Binding params; in each loop as the values change means we dont have to update
         $insert = $pdo->prepare($sql);
-        $insert->bindParam(':date', $today);
-        $insert->bindParam(':average', $value[0]); //change to $value[1] for median
-        $insert->bindParam(':sector', $key);
-        $insert->bindParam(':type', $housingType);
-        
-        
-        exit;
-        
+        $insert->bindParam(':sector', $key, PDO::PARAM_STR);
+        $insert->bindParam(':type', $housingType, PDO::PARAM_STR);
         
         foreach ($split as $housingValues){
             $json = json_decode($housingValues, true);
@@ -120,6 +122,8 @@
             if ($json != null){
                 foreach($json as $key=>$value){
                     if($key != "type"){
+                        $insert->bindParam(':average', $value[0], PDO::PARAM_INT);
+                        $insert->bindParam(':median', $value[1], PDO::PARAM_INT);
                         $insert->execute();
                     }
                 }
@@ -134,16 +138,15 @@
         $split = explode("\n", $output);
         
         // Setting up pdo statements
-        $sql = "INSERT INTO db10263_should.AVERAGE_COST
-        SELECT NULL, :date, sector.id AS sector, housing_type.id AS type, :average
-        FROM sector, housing_type
-        WHERE sector.name =':sector'
-        AND housing_type.name =':type'";
+        $sql = "INSERT INTO HOUSING.COST_ENTRIES
+        SELECT NULL, NULL, SECTOR.ID AS SECTOR_ID, HOUSING_TYPE.id AS HOUSING_ID, :average
+        FROM SECTOR, HOUSING_TYPE
+        WHERE SECTOR.NAME =':sector'
+        AND HOUSING_TYPE.TYPE =':type'";
         
         
         //Binding params; in each loop as the values change means we dont have to update
         $insert = $pdo->prepare($sql);
-        $insert->bindParam(':date', $today);
         $insert->bindParam(':average', $price);
         $insert->bindParam(':sector', $key);
         $insert->bindParam(':type', $rentalType);
@@ -158,19 +161,19 @@
                 foreach($json as $key=>$value){
                     if($key != "type"){
                         $price = $value[0];
-                        $rentalType = "Bachelor ".$housingType;
+                        $rentalType = "BACHELOR ".$housingType;
                         $insert->execute();
                         
                         $price = $value[1];
-                        $rentalType = "One-Bedroom ".$housingType;
+                        $rentalType = "ONE-BEDROOM ".$housingType;
                         $insert->execute();
                         
-                        $price = $value[2]
-                        $rentalType = "Two-Bedroom ".$housingType
+                        $price = $value[2];
+                        $rentalType = "TWO-BEDROOM ".$housingType;
                         $insert->execute();
                         
-                        $price = $value[3]
-                        $rentalType = "Three-Bedroom ".$housingType
+                        $price = $value[3];
+                        $rentalType = "THREE-BEDROOM ".$housingType;
                         $insert->execute();
                     }
                 }

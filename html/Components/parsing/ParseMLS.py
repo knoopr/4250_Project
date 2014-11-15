@@ -12,7 +12,7 @@ for argument in sys.argv:
 if fileName != None:
     for page in range(17):
         if page%2 == 0:
-            HousingType = subprocess.Popen(['pdf2txt.py', '-p', str(page+8), fileName], stdout=subprocess.PIPE)
+            HousingType = subprocess.Popen(['pdf2txt', '-p', str(page+8), fileName], stdout=subprocess.PIPE)
             output = HousingType.stdout.read()
             
             type = re.search("TRANSACTIONS.*,", output)
