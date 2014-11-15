@@ -1,15 +1,14 @@
 <?php
-    require '/var/www/html/Components/php/db.php';
+    //require '/var/www/html/Components/php/db.php';
     
     
     if (sizeof($argv) < 2){
         $Buying = Download_MLS();
         echo "TEST";
-        exit();
         //Couldn'r return 0 as an int because no matter what I did it would recognize the string as a 0
         if ($Buying != "0"){
             echo "test";
-            Insert_MLS("../data/".$Buying, $pdo);
+            //Insert_MLS("../data/".$Buying, $pdo);
         }
         /*$Renting = Download_Rental();
         if ($Renting != "0"){
