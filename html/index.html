@@ -18,7 +18,8 @@
                 };
                 
                 var map = new google.maps.Map(document.getElementById('map_canvas'), mapOptions);
-                map.data.loadGeoJson('http://107.170.110.165/Components/data/map.geojson');
+                map.data.loadGeoJson('http://107.170.110.165/Components/data/districtMaps/C01.json');
+                map.data.loadGeoJson('http://107.170.110.165/Components/data/districtMaps/W04.json');
                 map.data.setStyle({
                         fillColor: 'green',
                         strokeWeight: 3
