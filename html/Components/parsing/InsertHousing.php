@@ -1,23 +1,24 @@
 <?php
-    //require '/var/www/html/Components/php/db.php';
+    require '/var/www/html/Components/php/db.php';
     
     
     if (sizeof($argv) < 2){
         $Buying = Download_MLS();
-        echo "TEST";
         //Couldn'r return 0 as an int because no matter what I did it would recognize the string as a 0
         if ($Buying != "0"){
-            echo "test";
-            //Insert_MLS("../data/".$Buying, $pdo);
+            Insert_MLS("../data/".$Buying, $pdo);
         }
-        /*$Renting = Download_Rental();
+        $Renting = Download_Rental();
         if ($Renting != "0"){
-            Insert_Rental($Renting);
-        }*/
+            Insert_Rental($Renting, $pdo);
+        }
     }
     elseif (sizeof($argv) == 3){
         if ($argv[1] = "-b"){
             Insert_MLS($argv[2], $pdo);
+        }
+        if ($argv[1] = "-i"){
+            Insert_Rental($argv[2], $pdo);
         }
     }
     
@@ -32,12 +33,9 @@
         $year = "20".substr($fileOutput, 2, 2);
         fclose($nextFile);
         
-        //$query = "http://107.170.110.165/Components/data/districtMaps/C01.json";
         $query = "http://www.torontorealestateboard.com/market_news/market_watch/$year/$fileOutput";
         $results = @file_get_contents($query);
         if ($results === false){
-            echo $results;
-            exit();
             return "0";
         }
         
@@ -132,7 +130,7 @@
     
     
     
-    function Insert_Rental($fileName){
+    function Insert_Rental($fileName, $pdo){
         $output = shell_exec("./ParseRental.py $fileName");
         $split = explode("\n", $output);
         
