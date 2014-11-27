@@ -4,13 +4,13 @@
     
     if (sizeof($argv) < 2){
         $Buying = Download_MLS();
-        //Couldn'r return 0 as an int because no matter what I did it would recognize the string as a 0
+        //Couldn't return 0 as an int because no matter what I did it would recognize the string as a 0
         if ($Buying != "0"){
             Insert_MLS("../data/".$Buying, $pdo);
         }
         $Renting = Download_Rental();
         if ($Renting != "0"){
-            Insert_Rental($Renting, $pdo);
+            Insert_Rental("../data/".$Renting, $pdo);
         }
     }
     elseif (sizeof($argv) == 3){
@@ -102,11 +102,12 @@
         
         // Setting up pdo statements
         $sql = "INSERT INTO HOUSING.COST_ENTRIES
-        SELECT NULL, NULL, SECTOR.ID AS SECTOR_ID, HOUSING_TYPE.id AS HOUSING_ID, :average, :median
+        SELECT NULL, NULL , SECTOR.ID AS SECTOR_ID, HOUSING_TYPE.id AS HOUSING_ID, :average, :median
         FROM SECTOR, HOUSING_TYPE
         WHERE SECTOR.NAME =:sector
         AND HOUSING_TYPE.NAME =:type";
         
+        date_default_timezone_set("America/Toronto");
         //Binding params; in each loop as the values change means we dont have to update
         $insert = $pdo->prepare($sql);
         $insert->bindParam(':sector', $key, PDO::PARAM_STR);
@@ -136,18 +137,17 @@
         
         // Setting up pdo statements
         $sql = "INSERT INTO HOUSING.COST_ENTRIES
-        SELECT NULL, NULL, SECTOR.ID AS SECTOR_ID, HOUSING_TYPE.id AS HOUSING_ID, :average
+        SELECT NULL, NULL, SECTOR.ID AS SECTOR_ID, HOUSING_TYPE.id AS HOUSING_ID, :average, NULL
         FROM SECTOR, HOUSING_TYPE
-        WHERE SECTOR.NAME =':sector'
-        AND HOUSING_TYPE.TYPE =':type'";
+        WHERE SECTOR.NAME =:sector
+        AND HOUSING_TYPE.NAME =:type";
         
         
         //Binding params; in each loop as the values change means we dont have to update
         $insert = $pdo->prepare($sql);
-        $insert->bindParam(':average', $price);
-        $insert->bindParam(':sector', $key);
-        $insert->bindParam(':type', $rentalType);
-        
+        $insert->bindParam(':sector', $key, PDO::PARAM_STR);
+        $insert->bindParam(':type', $rentalType, PDO::PARAM_STR);
+        $insert->bindParam(':average', $price, PDO::PARAM_INT);
         
         foreach ($split as $housingValues){
             $json = json_decode($housingValues, true);
@@ -157,21 +157,29 @@
             if ($json != null){
                 foreach($json as $key=>$value){
                     if($key != "type"){
-                        $price = $value[0];
-                        $rentalType = "BACHELOR ".$housingType;
-                        $insert->execute();
+                        if ($value[0] != "-"){
+                            $insert->bindParam(':average', substr($value[0], 1, strlen($value[0])), PDO::PARAM_INT);
+                            $rentalType = "BACHELOR ".$housingType;
+                            $insert->execute();
+                        }
                         
-                        $price = $value[1];
-                        $rentalType = "ONE-BEDROOM ".$housingType;
-                        $insert->execute();
+                        if ($value[1] != "-"){
+                            $insert->bindParam(':average', substr($value[1], 1, strlen($value[1])), PDO::PARAM_INT);
+                            $rentalType = "ONE-BEDROOM ".$housingType;
+                            $insert->execute();
+                        }
                         
-                        $price = $value[2];
-                        $rentalType = "TWO-BEDROOM ".$housingType;
-                        $insert->execute();
+                        if ($value[2] != "-"){
+                            $insert->bindParam(':average', substr($value[2], 1, strlen($value[2])), PDO::PARAM_INT);
+                            $rentalType = "TWO-BEDROOM ".$housingType;
+                            $insert->execute();
+                        }
                         
-                        $price = $value[3];
-                        $rentalType = "THREE-BEDROOM ".$housingType;
-                        $insert->execute();
+                        if ($value[3] != "-"){
+                            $insert->bindParam(':average', substr($value[3], 1, strlen($value[3])), PDO::PARAM_INT);
+                            $rentalType = "THREE-BEDROOM ".$housingType;
+                            $insert->execute();
+                        }
                     }
                 }
             }
